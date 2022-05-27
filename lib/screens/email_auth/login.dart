@@ -30,7 +30,7 @@ class _LoginScreenState extends State<LoginScreen> {
         UserCredential userCredential = await FirebaseAuth.instance
             .signInWithEmailAndPassword(email: email, password: password);
         log('Log In!');
-        if (userCredential != null) {
+        if (userCredential.user != null) {
           Navigator.popUntil(context, (route) => route.isFirst);
           Navigator.pushReplacement(
               context, CupertinoPageRoute(builder: ((context) => Home())));

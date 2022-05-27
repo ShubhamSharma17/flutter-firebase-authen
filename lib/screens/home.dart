@@ -4,6 +4,7 @@ import 'dart:developer';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fluter_firebase_authentication/screens/email_auth/login.dart';
+import 'package:fluter_firebase_authentication/screens/phone_auth/signin.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -20,7 +21,7 @@ class _HomeState extends State<Home> {
     log('Log Out');
     Navigator.popUntil(context, (route) => route.isFirst);
     Navigator.pushReplacement(
-        context, CupertinoPageRoute(builder: ((context) => LoginScreen())));
+        context, CupertinoPageRoute(builder: ((context) => SignInWithPhone())));
   }
 
   @override
@@ -31,6 +32,7 @@ class _HomeState extends State<Home> {
       ),
       body: Center(
           child: CupertinoButton(
+        color: Colors.blueAccent,
         child: Text('Log Out'),
         onPressed: () {
           logOut();

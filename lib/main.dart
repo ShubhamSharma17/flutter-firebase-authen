@@ -2,8 +2,9 @@
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:fluter_firebase_authentication/screens/email_auth/login.dart';
+
 import 'package:fluter_firebase_authentication/screens/home.dart';
+import 'package:fluter_firebase_authentication/screens/phone_auth/signin.dart';
 import 'package:flutter/material.dart';
 
 void main() async {
@@ -19,8 +20,9 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home:
-          (FirebaseAuth.instance.currentUser != null) ? Home() : LoginScreen(),
+      home: (FirebaseAuth.instance.currentUser != null)
+          ? Home()
+          : SignInWithPhone(),
     );
   }
 }

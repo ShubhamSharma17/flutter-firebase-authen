@@ -34,7 +34,7 @@ class _SignUpState extends State<SignUp> {
         UserCredential userCredential = await FirebaseAuth.instance
             .createUserWithEmailAndPassword(email: email, password: password);
         log('User created!');
-        if (userCredential != null) {
+        if (userCredential.user != null) {
           Navigator.pop(context);
         }
       } on FirebaseAuthException catch (e) {
