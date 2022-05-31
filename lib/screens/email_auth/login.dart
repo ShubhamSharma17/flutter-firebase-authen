@@ -5,6 +5,7 @@ import 'dart:developer';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fluter_firebase_authentication/screens/email_auth/signup.dart';
 import 'package:fluter_firebase_authentication/screens/home.dart';
+import 'package:fluter_firebase_authentication/screens/phone_auth/signin.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -75,6 +76,18 @@ class _LoginScreenState extends State<LoginScreen> {
               child: Text('Log In'),
               onPressed: () {
                 login();
+              },
+              color: Colors.blue,
+            ),
+            SizedBox(height: 10),
+            CupertinoButton(
+              child: Text('Log In with Phone'),
+              onPressed: () {
+                Navigator.push(
+                    context,
+                    CupertinoPageRoute(
+                      builder: (context) => SignInWithPhone(),
+                    ));
               },
               color: Colors.blue,
             ),

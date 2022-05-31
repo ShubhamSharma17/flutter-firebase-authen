@@ -55,6 +55,7 @@ class _VerificationOTPState extends State<VerificationOTP> {
             ),
             SizedBox(height: 15),
             CupertinoButton(
+                color: Colors.lightBlueAccent,
                 child: Text('Verify'),
                 onPressed: () {
                   verifyOTP();
