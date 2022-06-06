@@ -1,13 +1,19 @@
 // ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables
 
+import 'dart:async';
 import 'dart:developer';
+
+import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:fluter_firebase_authentication/screens/email_auth/login.dart';
-import 'package:fluter_firebase_authentication/screens/phone_auth/signin.dart';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:uuid/uuid.dart';
 
 class Home extends StatefulWidget {
   const Home({Key? key}) : super(key: key);
@@ -17,6 +23,10 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
+  TextEditingController emailController = TextEditingController();
+  TextEditingController nameController = TextEditingController();
+  TextEditingController ageController = TextEditingController();
+  File? profilePic;
   void logOut() async {
     await FirebaseAuth.instance.signOut();
     log('Log Out');
@@ -27,25 +37,52 @@ class _HomeState extends State<Home> {
 
   @override
   Widget build(BuildContext context) {
-    TextEditingController emailController = TextEditingController();
-    TextEditingController nameController = TextEditingController();
-
     //method for save date of user
     void saveUser() async {
       String name = nameController.text.trim();
       String email = emailController.text.trim();
+      String ageSring = ageController.text.trim();
+
+      int age = int.parse(ageSring);
 
       nameController.clear();
       emailController.clear();
+      ageController.clear();
 
-      if (name != '' && email != '') {
-        Map<String, dynamic> userCredencials = {'name': name, 'email': email};
+      if (name != '' && email != '' && ageSring != '' && profilePic != null) {
+        UploadTask uploadTask = FirebaseStorage.instance
+            .ref()
+            .child('profilepictures')
+            .child(Uuid().v1())
+            .putFile(profilePic!);
+
+        StreamSubscription taskSubscription =
+            uploadTask.snapshotEvents.listen((snapshot) {
+          double percentage =
+              snapshot.bytesTransferred / snapshot.totalBytes * 100;
+          log(percentage.toString());
+        });
+
+        TaskSnapshot taskSnapshot = await uploadTask;
+        String downloadUrl = await taskSnapshot.ref.getDownloadURL();
+
+        taskSubscription.cancel();
+
+        Map<String, dynamic> userCredencials = {
+          'name': name,
+          'email': email,
+          'age': age,
+          'profilePic': downloadUrl,
+        };
 
         FirebaseFirestore.instance.collection('example1').add(userCredencials);
         log('User credencials has saved');
       } else {
         log('please enter right credenials');
       }
+      setState(() {
+        profilePic = null;
+      });
     }
 
     return Scaffold(
@@ -63,6 +100,30 @@ class _HomeState extends State<Home> {
         padding: const EdgeInsets.all(10),
         child: Column(
           children: [
+            CupertinoButton(
+              onPressed: () async {
+                XFile? selectedImage =
+                    await ImagePicker().pickImage(source: ImageSource.gallery);
+
+                if (selectedImage != null) {
+                  File convertedFile = File(selectedImage.path);
+                  setState(() {
+                    profilePic = convertedFile;
+                  });
+                  log('Image selected!');
+                } else {
+                  log('Image not selected!');
+                }
+              },
+              padding: EdgeInsets.zero,
+              child: CircleAvatar(
+                // backgroundColor: Colors.blueGrey,
+                radius: 40,
+                backgroundImage:
+                    (profilePic != null) ? FileImage(profilePic!) : null,
+              ),
+            ),
+            SizedBox(height: 15),
             TextField(
               controller: nameController,
               decoration: InputDecoration(
@@ -77,6 +138,13 @@ class _HomeState extends State<Home> {
                   hintText: 'Enter Your Email Address'),
             ),
             SizedBox(height: 15),
+            TextField(
+              controller: ageController,
+              keyboardType: TextInputType.emailAddress,
+              decoration:
+                  InputDecoration(labelText: 'Age', hintText: 'Enter Your Age'),
+            ),
+            SizedBox(height: 15),
             CupertinoButton(
               color: Colors.blueGrey,
               child: Text('Save'),
@@ -86,8 +154,10 @@ class _HomeState extends State<Home> {
             ),
             SizedBox(height: 30),
             StreamBuilder<QuerySnapshot>(
-              stream:
-                  FirebaseFirestore.instance.collection('example1').snapshots(),
+              stream: FirebaseFirestore.instance
+                  .collection('example1')
+                  .where('age', isGreaterThanOrEqualTo: 0)
+                  .snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.active) {
                   if (snapshot.hasData && snapshot.data != null) {
@@ -99,7 +169,12 @@ class _HomeState extends State<Home> {
                               snapshot.data!.docs[index].data()
                                   as Map<String, dynamic>;
                           return ListTile(
-                            title: Text(userMap['name']),
+                            leading: CircleAvatar(
+                              backgroundImage:
+                                  NetworkImage(userMap['profilePic']),
+                            ),
+                            title:
+                                Text(userMap['name'] + '(${userMap['age']})'),
                             subtitle: Text(userMap['email']),
                             trailing: IconButton(
                               icon: Icon(Icons.delete),
